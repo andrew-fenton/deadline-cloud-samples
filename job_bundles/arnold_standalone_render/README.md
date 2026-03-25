@@ -5,13 +5,10 @@
 This job bundle renders Arnold `.ass` (Arnold Scene Source) files using the Arnold
 `kick` command-line renderer that ships with MtoA (Arnold for Maya).
 
-The `kick` command is Arnold's standalone renderer. It reads `.ass` files and produces
-rendered images without requiring a full Maya session, making it ideal for batch rendering
-pre-exported scenes.
+Point it at a directory of `.ass` files with a naming pattern, and it renders each
+frame as a separate task distributed across workers.
 
 ## Prerequisites
-
-To run this job, you need:
 
 * A Deadline Cloud queue with a **conda queue environment** configured. The job's
   `CondaPackages` parameter defaults to `maya-mtoa`, which provides the `kick` binary.
@@ -23,14 +20,15 @@ To run this job, you need:
 
 ## Getting sample .ass files
 
-You can download sample Arnold scene files from the Autodesk Arnold learning scenes page:
+A sample `cornell.0001.ass` file is included in the `scene/` directory.
 
+You can download more from the Autodesk Arnold learning scenes page:
 **[Arnold Learning Scenes](https://help.autodesk.com/view/MAYAUL/2024/ENU/?guid=arnold_for_maya_tutorials_am_Learning_Scenes_html)**
 
-The page provides scenes like `cornell.ass` (a Cornell box) that work well for testing.
-
-You can also export `.ass` files from Maya using Arnold's scene export:
-`Arnold > Export Scene...` or via MEL: `arnoldExportAss -f "scene.ass"`.
+You can also export `.ass` files from Maya: `Arnold > Export Scene...` or via MEL:
+`arnoldExportAss -f "scene" -sf 1 -ef 100`. See the
+[maya_arnold_ass_export_render](../maya_arnold_ass_export_render) sample for a job
+that automates this export step.
 
 ## Submitting the job
 
@@ -44,18 +42,20 @@ deadline bundle gui-submit arnold_standalone_render/
 
 ```bash
 deadline bundle submit arnold_standalone_render/ \
-    -p ArnoldFile=/path/to/scene.ass \
-    -p OutputDir=/path/to/output
+    -p SceneDirectory=/path/to/ass_files \
+    -p FilePattern=robot.####.ass \
+    -p Frames=1-100 \
+    -p OutputDir=./output
 ```
 
 ## How it works
 
-The job has a single step that:
+The job has a single step with a parameter space that creates one task per frame.
+Each task:
 
-1. Locates the `kick` binary using the `$MTOA` environment variable set by the
-   `maya-mtoa` conda package.
-2. Prints the Arnold version for reference.
+1. Locates the `kick` binary using the `$MTOA` environment variable, with a
+   fallback to searching `$CONDA_PREFIX`.
+2. Constructs the input path from `SceneDirectory` and `FilePattern`, replacing
+   `####` with the zero-padded frame number.
 3. Runs `kick -i <input> -o <output>` to render the scene.
-
-The output format is inferred from the `OutputFileName` extension (default: `.exr`).
-Arnold supports EXR, PNG, JPEG, TIFF, and other formats.
+4. Outputs files named `<OutputFilePrefix>.<frame>.exr`.
