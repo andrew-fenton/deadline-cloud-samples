@@ -8,7 +8,7 @@ This job template is designed to be generalizable for any VTK-based Python scrip
 1. Accepts command-line parameters for output path, width, and height
 2. Saves visualization output to a specified location
 
-The template accepts a user-provided Python script, runs it with the specified parameters, and saves the visualization output to the designated location.
+The template accepts a user-provided Python script and runs it with the specified parameters, saving the visualization output to the designated location.
 
 ## Parameters
 
@@ -28,7 +28,7 @@ The template accepts a user-provided Python script, runs it with the specified p
 - **CondaPackages**: Conda packages to install (default: "vtk numpy"). These packages must be available in the Conda Channels configured in the queue environment
 
 ### Additional Parameters
-- **ExtraParams**: Additional parameters to pass to the script (format: '--param1 value1 --param2 value2')
+- **ExtraParams**: Additional parameters to pass to the script (format: `--param1 value1 --param2 value2`)
 
 ## Usage
 
